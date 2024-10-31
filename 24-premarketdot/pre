@@ -1,0 +1,140 @@
+// Cargo.toml
+[package]
+name = "prediction-market"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+substrate-core = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
+frame-support = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
+frame-system = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
+sp-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
+sp-io = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
+serde = { version = "1.0", features = ["derive"] }
+codec = { package = "parity-scale-codec", version = "3.0.0", features = ["derive"] }
+
+// src/oracle/mod.rs
+pub mod oracle {
+    use frame_support::{
+        pallet_prelude::*,
+        traits::Time,
+    };
+    use frame_system::pallet_prelude::*;
+    use sp_runtime::traits::Zero;
+
+    #[pallet::config]
+    pub trait Config: frame_system::Config {
+        type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+        type TimeProvider: Time;
+        type Price: Member + Parameter + From<u32> + Into<u32>;
+    }
+
+    #[pallet::pallet]
+    #[pallet::generate_store(pub(super) trait Store)]
+    pub struct Pallet<T>(_);
+
+    #[pallet::storage]
+    pub type PriceFeeds<T: Config> = StorageMap<
+        _,
+        Blake2_128Concat,
+        Vec<u8>,  // Asset identifier
+        T::Price,
+        ValueQuery,
+    >;
+
+    #[pallet::event]
+    #[pallet::generate_deposit(pub(super) fn deposit_event)]
+    pub enum Event<T: Config> {
+        PriceUpdated {
+            asset: Vec<u8>,
+            price: T::Price,
+            timestamp: T::Moment,
+        },
+    }
+
+    #[pallet::error]
+    pub enum Error<T> {
+        InvalidPrice,
+        InvalidAsset,
+    }
+
+    #[pallet::call]
+    impl<T: Config> Pallet<T> {
+        #[pallet::weight(10_000)]
+        pub fn update_price(
+            origin: OriginFor<T>,
+            asset: Vec<u8>,
+            price: T::Price,
+        ) -> DispatchResult {
+            ensure_signed(origin)?;
+            ensure!(!price.is_zero(), Error::<T>::InvalidPrice);
+            ensure!(!asset.is_empty(), Error::<T>::InvalidAsset);
+
+            let timestamp = T::TimeProvider::now();
+            PriceFeeds::<T>::insert(&asset, price);
+
+            Self::deposit_event(Event::PriceUpdated {
+                asset,
+                price,
+                timestamp,
+            });
+
+            Ok(())
+        }
+    }
+}
+
+// src/market/mod.rs
+pub mod market {
+    use super::oracle;
+    use frame_support::{
+        pallet_prelude::*,
+        traits::{Currency, ExistenceRequirement, ReservableCurrency},
+    };
+    use frame_system::pallet_prelude::*;
+
+    #[pallet::config]
+    pub trait Config: frame_system::Config + oracle::Config {
+        type Currency: ReservableCurrency<Self::AccountId>;
+        type MinimumStake: Get<BalanceOf<Self>>;
+        type PredictionPeriod: Get<Self::BlockNumber>;
+    }
+
+    // Thêm các định nghĩa Market pallet như đã có ở trên
+    // ...
+
+    #[pallet::hooks]
+    impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+        fn on_initialize(n: T::BlockNumber) -> Weight {
+            // Kiểm tra và giải quyết các dự đoán đã hết hạn
+            Self::resolve_expired_predictions(n);
+            Weight::zero()
+        }
+    }
+
+    impl<T: Config> Pallet<T> {
+        fn resolve_expired_predictions(now: T::BlockNumber) {
+            // Logic xử lý các dự đoán hết hạn
+            for (pred_id, pred) in Predictions::<T>::iter() {
+                if pred.end_block <= now && !pred.is_resolved {
+                    if let Ok(final_price) = Self::get_final_price(&pred.asset) {
+                        let _ = Self::do_resolve_prediction(pred_id, final_price);
+                    }
+                }
+            }
+        }
+
+        fn get_final_price(asset: &[u8]) -> Result<T::Price, DispatchError> {
+            oracle::PriceFeeds::<T>::get(asset)
+                .ok_or(Error::<T>::PriceNotAvailable.into())
+        }
+    }
+}
+
+// src/lib.rs
+#![cfg_attr(not(feature = "std"), no_std)]
+
+pub use market::*;
+pub use oracle::*;
+
+// Frontend code (React)

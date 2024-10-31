@@ -1,0 +1,185 @@
+import React, { useState, useEffect } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+
+const PredictionMarket = () => {
+  const [predictions, setPredictions] = useState([
+    {
+      id: '1',
+      asset: 'BTC/USD',
+      predictionValue: 45000,
+      totalStake: 1000,
+      isResolved: false,
+      priceHistory: [
+        { time: '00:00', price: 44800 },
+        { time: '04:00', price: 45200 },
+        { time: '08:00', price: 45100 },
+        { time: '12:00', price: 45400 },
+        { time: '16:00', price: 45300 },
+        { time: '20:00', price: 45500 }
+      ]
+    },
+    {
+      id: '2',
+      asset: 'ETH/USD',
+      predictionValue: 3200,
+      totalStake: 800,
+      isResolved: false,
+      priceHistory: [
+        { time: '00:00', price: 3180 },
+        { time: '04:00', price: 3220 },
+        { time: '08:00', price: 3210 },
+        { time: '12:00', price: 3240 },
+        { time: '16:00', price: 3230 },
+        { time: '20:00', price: 3250 }
+      ]
+    }
+  ]);
+
+  const [newPrediction, setNewPrediction] = useState({
+    asset: '',
+    value: 0,
+    duration: 0
+  });
+
+  const [notification, setNotification] = useState(null);
+
+  const createPrediction = async () => {
+    try {
+      // Simulate API call
+      const newPred = {
+        id: String(predictions.length + 1),
+        asset: newPrediction.asset,
+        predictionValue: newPrediction.value,
+        totalStake: 0,
+        isResolved: false,
+        priceHistory: [
+          { time: '00:00', price: newPrediction.value }
+        ]
+      };
+
+      setPredictions([...predictions, newPred]);
+      setNewPrediction({ asset: '', value: 0, duration: 0 });
+      showNotification('Prediction created successfully!', 'success');
+    } catch (error) {
+      showNotification('Error creating prediction', 'error');
+    }
+  };
+
+  const placeBet = async (predictionId, amount, isUp) => {
+    try {
+      // Simulate API call
+      const updatedPredictions = predictions.map(pred => {
+        if (pred.id === predictionId) {
+          return {
+            ...pred,
+            totalStake: pred.totalStake + amount
+          };
+        }
+        return pred;
+      });
+
+      setPredictions(updatedPredictions);
+      showNotification(`Bet placed successfully! ${isUp ? 'UP' : 'DOWN'}`, 'success');
+    } catch (error) {
+      showNotification('Error placing bet', 'error');
+    }
+  };
+
+  const showNotification = (message, type) => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-6">Prediction Market</h1>
+      
+      {notification && (
+        <Alert className={`mb-4 ${notification.type === 'error' ? 'bg-red-100' : 'bg-green-100'}`}>
+          <AlertDescription>{notification.message}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Create Prediction Form */}
+      <div className="bg-white shadow-lg rounded-lg p-6 mb-8">
+        <h2 className="text-xl font-semibold mb-4">Create New Prediction</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <input
+            className="border rounded-md p-2"
+            placeholder="Asset (e.g. BTC/USD)"
+            value={newPrediction.asset}
+            onChange={(e) => setNewPrediction({...newPrediction, asset: e.target.value})}
+          />
+          <input
+            className="border rounded-md p-2"
+            type="number"
+            placeholder="Initial Value"
+            value={newPrediction.value}
+            onChange={(e) => setNewPrediction({...newPrediction, value: Number(e.target.value)})}
+          />
+          <input
+            className="border rounded-md p-2"
+            type="number"
+            placeholder="Duration (hours)"
+            value={newPrediction.duration}
+            onChange={(e) => setNewPrediction({...newPrediction, duration: Number(e.target.value)})}
+          />
+        </div>
+        <button
+          className="mt-4 bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors"
+          onClick={createPrediction}
+        >
+          Create Prediction
+        </button>
+      </div>
+
+      {/* Predictions List */}
+      <div className="grid grid-cols-1 gap-6">
+        {predictions.map(prediction => (
+          <div key={prediction.id} className="bg-white shadow-lg rounded-lg p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">{prediction.asset}</h3>
+              <span className="text-gray-600">
+                Total Stake: {prediction.totalStake} USD
+              </span>
+            </div>
+
+            {/* Price Chart */}
+            <div className="mb-4 h-64">
+              <LineChart width={800} height={200} data={prediction.priceHistory}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="time" />
+                <YAxis />
+                <Tooltip />
+                <Line 
+                  type="monotone" 
+                  dataKey="price" 
+                  stroke="#2563eb" 
+                  strokeWidth={2}
+                />
+              </LineChart>
+            </div>
+
+            <div className="flex gap-4 mt-4">
+              <button
+                className="flex-1 bg-green-500 text-white px-6 py-3 rounded-md hover:bg-green-600 transition-colors"
+                onClick={() => placeBet(prediction.id, 100, true)}
+              >
+                Bet Up (100 USD)
+              </button>
+              <button
+                className="flex-1 bg-red-500 text-white px-6 py-3 rounded-md hover:bg-red-600 transition-colors"
+                onClick={() => placeBet(prediction.id, 100, false)}
+              >
+                Bet Down (100 USD)
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default PredictionMarket;

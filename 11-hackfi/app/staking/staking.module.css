@@ -1,0 +1,14 @@
+@keyframes pulsate {
+  0%, 100% {
+    width: 200px;
+    height: 200px;
+  }
+  50% {
+    width: 500px;
+    height: 500px;
+  }
+}
+
+.pulsatingImage {
+  animation: pulsate 4s ease-in-out infinite;
+}

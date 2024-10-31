@@ -1,0 +1,1 @@
+export const BASE_SOURCE = process.env.NEXT_PUBLIC_BASE_SOURCE || "http://localhost:3005/api/";

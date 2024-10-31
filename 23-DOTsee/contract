@@ -1,0 +1,123 @@
+use frame_support::{
+    decl_module, decl_storage, decl_event, decl_error, dispatch,
+    traits::Get,
+};
+use frame_system::ensure_signed;
+use sp_std::prelude::*;
+use sp_runtime::traits::Hash;
+use codec::{Encode, Decode};
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, Debug)]
+pub struct DidDocument {
+    pub owner: AccountId,
+    pub public_key: Vec<u8>,
+    pub auth_key: Vec<u8>,
+    pub services: Vec<Service>,
+    pub created: u64,
+    pub updated: u64,
+}
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, Debug)]
+pub struct Service {
+    pub id: Vec<u8>,
+    pub service_type: Vec<u8>,
+    pub endpoint: Vec<u8>,
+}
+
+decl_storage! {
+    trait Store for Module<T: Config> as DidModule {
+        // Mapping từ DID sang DidDocument
+        Identities get(fn get_identity): map hasher(blake2_128_concat) Vec<u8> => Option<DidDocument>;
+        
+        // Mapping từ account sang danh sách DID sở hữu
+        DidsByAccount get(fn dids_by_account): map hasher(blake2_128_concat) T::AccountId => Vec<Vec<u8>>;
+    }
+}
+
+decl_event!(
+    pub enum Event<T> where AccountId = <T as frame_system::Config>::AccountId {
+        DidCreated(AccountId, Vec<u8>),
+        DidUpdated(AccountId, Vec<u8>),
+        DidDeleted(AccountId, Vec<u8>),
+    }
+);
+
+decl_error! {
+    pub enum Error for Module<T: Config> {
+        DidAlreadyExists,
+        DidNotFound,
+        NotOwner,
+    }
+}
+
+decl_module! {
+    pub struct Module<T: Config> for enum Call where origin: T::Origin {
+        type Error = Error<T>;
+
+        fn deposit_event() = default;
+
+        #[weight = 10_000]
+        pub fn create_did(origin, did: Vec<u8>, public_key: Vec<u8>, auth_key: Vec<u8>) -> dispatch::DispatchResult {
+            let sender = ensure_signed(origin)?;
+
+            ensure!(!Identities::contains_key(&did), Error::<T>::DidAlreadyExists);
+
+            let timestamp = <frame_system::Module<T>>::block_number().saturated_into::<u64>();
+            
+            let did_document = DidDocument {
+                owner: sender.clone(),
+                public_key,
+                auth_key,
+                services: Vec::new(),
+                created: timestamp,
+                updated: timestamp,
+            };
+
+            Identities::insert(&did, did_document);
+            
+            let mut dids = DidsByAccount::<T>::get(&sender);
+            dids.push(did.clone());
+            DidsByAccount::<T>::insert(&sender, dids);
+
+            Self::deposit_event(RawEvent::DidCreated(sender, did));
+            Ok(())
+        }
+
+        #[weight = 10_000]
+        pub fn update_did(origin, did: Vec<u8>, new_public_key: Vec<u8>, new_auth_key: Vec<u8>) -> dispatch::DispatchResult {
+            let sender = ensure_signed(origin)?;
+
+            let mut did_doc = Identities::get(&did).ok_or(Error::<T>::DidNotFound)?;
+            ensure!(did_doc.owner == sender, Error::<T>::NotOwner);
+
+            did_doc.public_key = new_public_key;
+            did_doc.auth_key = new_auth_key;
+            did_doc.updated = <frame_system::Module<T>>::block_number().saturated_into::<u64>();
+
+            Identities::insert(&did, did_doc);
+
+            Self::deposit_event(RawEvent::DidUpdated(sender, did));
+            Ok(())
+        }
+
+        #[weight = 10_000]
+        pub fn add_service(origin, did: Vec<u8>, service_id: Vec<u8>, service_type: Vec<u8>, endpoint: Vec<u8>) -> dispatch::DispatchResult {
+            let sender = ensure_signed(origin)?;
+
+            let mut did_doc = Identities::get(&did).ok_or(Error::<T>::DidNotFound)?;
+            ensure!(did_doc.owner == sender, Error::<T>::NotOwner);
+
+            let service = Service {
+                id: service_id,
+                service_type,
+                endpoint,
+            };
+
+            did_doc.services.push(service);
+            did_doc.updated = <frame_system::Module<T>>::block_number().saturated_into::<u64>();
+
+            Identities::insert(&did, did_doc);
+            Ok(())
+        }
+    }
+}

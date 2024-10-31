@@ -1,0 +1,36 @@
+{
+   "compilerOptions": {
+      "lib": ["dom", "dom.iterable", "esnext"],
+      "allowJs": true,
+      "skipLibCheck": true,
+      "strict": true,
+      "noEmit": true,
+      "esModuleInterop": true,
+      "module": "esnext",
+      "moduleResolution": "bundler",
+      "resolveJsonModule": true,
+      "isolatedModules": true,
+      "jsx": "preserve",
+      "incremental": true,
+      "plugins": [
+         {
+            "name": "next"
+         }
+      ],
+      "paths": {
+         "@/*": ["./*"]
+      }
+   },
+   "include": [
+      "next-env.d.ts",
+      "**/*.ts",
+      "**/*.tsx",
+      ".next/types/**/*.ts",
+      "pages/_document.tsx",
+      "components/modelUtils/NFTModel.js",
+      "utils/context/index.js",
+      "utils/connectWallet/ConnectWallet.tsx",
+      "role/createNFT/createnft.ts"
+, "components/Banner.tsx", "role/sellNFT/sellNFT.js", "role/unlistNFT/index.js", "pages/nftDetail/[id]/index.jsx", "(models)/user.js", "utils/mintingNFT/mintNFT.js"   ],
+   "exclude": ["node_modules"]
+}

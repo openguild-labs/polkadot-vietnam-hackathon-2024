@@ -1,0 +1,173 @@
+import React, { useState, useEffect } from 'react';
+import { ApiPromise, WsProvider } from '@polkadot/api';
+import { web3Enable, web3Accounts } from '@polkadot/extension-dapp';
+import { stringToU8a, u8aToString } from '@polkadot/util';
+import { mnemonicGenerate } from '@polkadot/util-crypto';
+
+interface DidDocument {
+  owner: string;
+  publicKey: string;
+  authKey: string;
+  services: Array<{
+    id: string;
+    serviceType: string;
+    endpoint: string;
+  }>;
+  created: number;
+  updated: number;
+}
+
+const DIDManager: React.FC = () => {
+  const [api, setApi] = useState<ApiPromise | null>(null);
+  const [account, setAccount] = useState<string>('');
+  const [did, setDid] = useState<string>('');
+  const [publicKey, setPublicKey] = useState<string>('');
+  const [authKey, setAuthKey] = useState<string>('');
+  const [didDocument, setDidDocument] = useState<DidDocument | null>(null);
+
+  useEffect(() => {
+    const connectToPolkadot = async () => {
+      const wsProvider = new WsProvider('ws://localhost:9944');
+      const api = await ApiPromise.create({ provider: wsProvider });
+      setApi(api);
+
+      // Enable web3 extension
+      await web3Enable('DID Manager');
+      const accounts = await web3Accounts();
+      if (accounts.length > 0) {
+        setAccount(accounts[0].address);
+      }
+    };
+
+    connectToPolkadot();
+  }, []);
+
+  const createDid = async () => {
+    if (!api || !account) return;
+
+    try {
+      // Generate random DID
+      const didId = mnemonicGenerate();
+      
+      const tx = api.tx.didModule.createDid(
+        stringToU8a(didId),
+        stringToU8a(publicKey),
+        stringToU8a(authKey)
+      );
+
+      await tx.signAndSend(account);
+      setDid(didId);
+    } catch (error) {
+      console.error('Error creating DID:', error);
+    }
+  };
+
+  const updateDid = async () => {
+    if (!api || !account || !did) return;
+
+    try {
+      const tx = api.tx.didModule.updateDid(
+        stringToU8a(did),
+        stringToU8a(publicKey),
+        stringToU8a(authKey)
+      );
+
+      await tx.signAndSend(account);
+    } catch (error) {
+      console.error('Error updating DID:', error);
+    }
+  };
+
+  const getDidDocument = async () => {
+    if (!api || !did) return;
+
+    try {
+      const result = await api.query.didModule.identities(stringToU8a(did));
+      
+      if (result.isSome) {
+        const doc = result.unwrap();
+        setDidDocument({
+          owner: doc.owner.toString(),
+          publicKey: u8aToString(doc.publicKey),
+          authKey: u8aToString(doc.authKey),
+          services: doc.services.map(s => ({
+            id: u8aToString(s.id),
+            serviceType: u8aToString(s.serviceType),
+            endpoint: u8aToString(s.endpoint)
+          })),
+          created: doc.created.toNumber(),
+          updated: doc.updated.toNumber()
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching DID document:', error);
+    }
+  };
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">DID Manager</h1>
+      
+      <div className="mb-4">
+        <p>Connected Account: {account}</p>
+        <p>Current DID: {did}</p>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <input
+            type="text"
+            placeholder="Public Key"
+            value={publicKey}
+            onChange={(e) => setPublicKey(e.target.value)}
+            className="border p-2 rounded"
+          />
+        </div>
+
+        <div>
+          <input
+            type="text"
+            placeholder="Auth Key"
+            value={authKey}
+            onChange={(e) => setAuthKey(e.target.value)}
+            className="border p-2 rounded"
+          />
+        </div>
+
+        <div className="space-x-4">
+          <button
+            onClick={createDid}
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            Create DID
+          </button>
+          
+          <button
+            onClick={updateDid}
+            className="bg-green-500 text-white px-4 py-2 rounded"
+          >
+            Update DID
+          </button>
+
+          <button
+            onClick={getDidDocument}
+            className="bg-purple-500 text-white px-4 py-2 rounded"
+          >
+            Get DID Document
+          </button>
+        </div>
+      </div>
+
+      {didDocument && (
+        <div className="mt-8">
+          <h2 className="text-xl font-bold mb-2">DID Document</h2>
+          <pre className="bg-gray-100 p-4 rounded">
+            {JSON.stringify(didDocument, null, 2)}
+          </pre>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default DIDManager;

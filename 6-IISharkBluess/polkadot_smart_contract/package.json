@@ -1,0 +1,26 @@
+{
+  "name": "ethereum",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.8",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.12",
+    "mocha": "^10.7.3"
+  },
+  "dependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.8",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.12",
+    "@pythnetwork/pyth-sdk-solidity": "^4.0.0",
+    "chai": "^5.1.1",
+    "ethers": "^6.13.2",
+    "node": "^20.18.0"
+  }
+}

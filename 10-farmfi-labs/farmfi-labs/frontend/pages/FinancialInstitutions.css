@@ -1,0 +1,138 @@
+/* General Styling */
+.financial-institutions {
+    padding: 20px;
+    padding-left: 120px;
+}
+
+/* Hero Section Styling */
+.financial-institutions-header {
+    background: linear-gradient(135deg, #033a1c, #a1c045);
+    padding: 60px 20px;
+    color: #fff;
+    text-align: center;
+    border-radius: 10px;
+    margin-bottom: 40px;
+    position: relative;
+}
+
+.financial-institutions-header .hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.financial-institutions-header h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+.financial-institutions-header p {
+    font-size: 1.2rem;
+    line-height: 1.6;
+}
+
+/* Key Features Section */
+.financial-features {
+    margin-bottom: 50px;
+    text-align: center;
+}
+
+.financial-features h2 {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+    color: #033a1c;
+}
+
+.financial-features-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+}
+
+/* Card Hover Effects */
+.financial-features-grid .card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.financial-features-grid .card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Benefits Section */
+.financial-benefits {
+    background-color: #f9f9f9;
+    padding: 40px 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.financial-benefits h2 {
+    font-size: 2.5rem;
+    color: #033a1c;
+    margin-bottom: 20px;
+}
+
+.financial-benefits p {
+    font-size: 1.1rem;
+    color: #555;
+    line-height: 1.8;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Call-to-Action Section */
+.financial-cta {
+    background: linear-gradient(135deg, #a1c045, #033a1c);
+    padding: 40px;
+    border-radius: 10px;
+    text-align: center;
+    color: white;
+}
+
+.financial-cta h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+
+.financial-cta p {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.contact-us {
+    padding: 15px 30px;
+    background-color: #fff;
+    color: #033a1c;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.contact-us:hover {
+    background-color: #033a1c;
+    color: #fff;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .financial-features-grid {
+        flex-direction: column;
+    }
+
+    .financial-benefits p {
+        font-size: 1rem;
+    }
+
+    .financial-cta h2 {
+        font-size: 2rem;
+    }
+
+    .financial-cta p {
+        font-size: 1rem;
+    }
+}

@@ -1,0 +1,113 @@
+.sidebar {
+    width: 70px; /* Collapsed width */
+    height: 100vh;
+    background-color: #033a1c; /* Dark green color */
+    color: #fff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding-top: 10px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    transition: width 0.3s ease;
+    z-index: 1000; /* Ensure the sidebar is above the content */
+    overflow-x: hidden;
+}
+
+.sidebar.open {
+    width: 250px; /* Expanded width */
+}
+
+.sidebar-logo {
+    text-align: center;
+    margin-bottom: 30px;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+}
+
+.sidebar.open .sidebar-logo {
+    opacity: 1;
+}
+
+.sidebar-logo h2 {
+    color: #a1c045; /* Light green color */
+    font-size: 24px;
+    transition: font-size 0.3s ease;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    padding-left: 1px; /* Added padding for alignment */
+}
+
+.sidebar-nav ul {
+    list-style: none;
+    width: 100%;
+    padding: 0; /* Remove default padding */
+}
+
+.sidebar-nav ul li {
+    width: 100%;
+}
+
+.sidebar-nav ul li a {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    color: #fff;
+    text-decoration: none;
+    width: 100%;
+    transition: background-color 0.3s, padding 0.3s ease;
+    white-space: nowrap;
+}
+
+.sidebar-nav ul li a:hover {
+    background-color: #0a472c; /* Darker green on hover */
+}
+
+.sidebar-nav ul li a span {
+    margin-left: 10px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar.open ul li a span {
+    opacity: 1;
+}
+
+.sidebar-toggle {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: #033a1c;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 1100; /* Ensure toggle button is above the sidebar */
+}
+
+.sidebar-toggle:focus {
+    outline: none;
+}
+
+/* Adjust for smaller screens */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 10px;
+    }
+
+    .sidebar.open {
+        width: 220px;
+    }
+
+    .sidebar-logo h2 {
+        font-size: 20px;
+    }
+
+    .sidebar-nav ul li a {
+        padding: 1px 1px;
+    }
+}

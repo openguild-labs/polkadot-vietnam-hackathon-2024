@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id               String             @id @default(cuid())
+  wallet_address   String             @unique @default("0x0")
+  balance          Int                @default(0)
+  User_Pool        User_Pool[]
+  WalletList       WalletAddress[]
+  User_Transaction User_Transaction[]
+}
+
+model Pool {
+  id                String      @id @default(cuid())
+  pairId            String      @unique
+  name              String
+  creator           String
+  borrower          String      @default("0x0")
+  collateral_amount Int         @default(0)
+  profit            Int         @default(0)
+  expire            Int
+  isDeleted         Boolean     @default(false)
+  pool_status       PoolStatus  @default(PENDING)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  User_Pool         User_Pool[]
+  Pair_Pool         Pair_Pool[]
+}
+
+model Transaction {
+  id                String            @id @default(cuid())
+  hash              String            @unique
+  sender            String
+  receiver          String
+  token             String
+  symbol            String
+  amount            Int
+  to_smart_contract Boolean
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  User_Transaction  User_Transaction?
+}
+
+model WalletAddress {
+  id         String     @id @default(cuid())
+  userId     String     @unique
+  name       String?
+  address    String     @unique
+  walletName WalletName
+  is_deleted Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  User       User       @relation(fields: [userId], references: [id])
+}
+
+model User_Pool {
+  userId String @unique
+  poolId String @unique
+  pool   Pool   @relation(fields: [poolId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@id([poolId, userId])
+}
+
+model User_Transaction {
+  userId       String      @unique
+  transationId String      @unique
+  user         User        @relation(fields: [userId], references: [id])
+  transaction  Transaction @relation(fields: [transationId], references: [id])
+
+  @@id([transationId, userId])
+}
+
+enum PoolStatus {
+  PENDING
+  STARTING
+  ENDING
+}
+
+enum WalletName {
+  CREATE
+  PHANTOM
+  BACKPACK
+  BITGET
+}
+
+model PairToken {
+  id                      String      @id @default(cuid())
+  lend_token_symbol       String
+  collateral_token_symbol String
+  lend_token              String
+  collateral_token        String
+  lend_icon               String
+  collateral_icon         String
+  lend_token_name         String
+  collateral_token_name   String
+  lend_amount             Int
+  Pair_Pool               Pair_Pool[]
+}
+
+model Pair_Pool {
+  pairId      String    @unique
+  poolId      String    @unique
+  pair        PairToken @relation(fields: [pairTokenId], references: [id])
+  pool        Pool      @relation(fields: [poolId], references: [id])
+  pairTokenId String
+
+  @@id([pairId, poolId])
+}

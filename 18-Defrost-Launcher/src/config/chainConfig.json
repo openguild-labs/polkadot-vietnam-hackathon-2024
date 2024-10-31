@@ -1,0 +1,182 @@
+{
+  "81": {
+    "chainId": 81,
+    "parachainId": "",
+    "chainName": "shibuya",
+    "testnet": true,
+    "contracts": {
+      "SLPX": {
+        "address": ""
+      },
+      "ProjectPoolFactory": {
+        "address": "0x394CB962c36fC28ECF01833F0CD1b74FC291e9AB"
+      },
+      "ProjectPool": {
+        "address": []
+      }
+    },
+    "nativeAsset": {
+      "name": "Shibuya",
+      "symbol": "SBY",
+      "address": "0x0000000000000000000000000000000000000000",
+      "decimals": 18,
+      "icon": "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.coingabbar.com%2Fvi%2Fcrypto-currency%2Fbifrost-voucher-manta-vmanta-prices-usd&psig=AOvVaw2VL2l3TJFA4TnsffBTKn-m&ust=1729979854354000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCNCwtKfDqokDFQAAAAAdAAAAABAE"
+    },
+    "vAssets": [
+      {
+        "name": "voucher Astar",
+        "symbol": "vASTR",
+        "address": "0xfffFffff00000000000000010000000000000010",
+        "decimals": 18,
+        "icon": "https://www.stakingrewards.com/_next/image?url=https%3A%2F%2Fstorage.googleapis.com%2Fstakingrewards-static%2Fimages%2Fassets%2Fproduction%2Fbifrost-voucher-astr_logo.png%3Fv%3D1717150606436&w=3840&q=75"
+      }
+    ],
+    "rpcNodes": [
+      {
+        "provider": "Astar",
+        "url": "https://evm.shibuya.astar.network/"
+      },
+      {
+        "provider": "BlastAPI",
+        "url": "https://shibuya.public.blastapi.io/"
+      }
+    ]
+  },
+  "592": {
+    "chainId": 592,
+    "parachainId": "2006",
+    "chainName": "astar",
+    "testnet": false,
+    "contracts": {
+      "SLPX": {
+        "address": "0xc6bf0C5C78686f1D0E2E54b97D6de6e2cEFAe9fD"
+      },
+      "ProjectPoolFactory": {
+        "address": "0xc219eF258a25B7aa843670014987266EEBce18a3"
+      },
+      "ProjectPool": {
+        "address": []
+      }
+    },
+    "nativeAsset": {
+      "name": "Astar",
+      "symbol": "ASTR",
+      "address": "0x0000000000000000000000000000000000000000",
+      "decimals": 18,
+      "icon": "https://s2.coinmarketcap.com/static/img/coins/200x200/12885.png"
+    },
+    "vAssets": [
+      {
+        "name": "voucher Astar",
+        "symbol": "vASTR",
+        "address": "0xfffFffff00000000000000010000000000000010",
+        "decimals": 18,
+        "icon": "https://www.stakingrewards.com/_next/image?url=https%3A%2F%2Fstorage.googleapis.com%2Fstakingrewards-static%2Fimages%2Fassets%2Fproduction%2Fbifrost-voucher-astr_logo.png%3Fv%3D1717150606436&w=3840&q=75"
+      },
+      {
+        "name": "voucher Dot",
+        "symbol": "vDOT",
+        "address": "0xFfFfFfff00000000000000010000000000000008",
+        "decimals": 10,
+        "icon": "https://assets.coingecko.com/coins/images/28875/large/vDOT.png?1696527852"
+      }
+    ],
+    "rpcNodes": [
+      {
+        "provider": "Astar",
+        "url": "https://astar.api.onfinality.io/public"
+      },
+      {
+        "provider": "Astar",
+        "url": "https://evm.astar.network/"
+      }
+    ]
+  },
+  "1284": {
+    "chainId": 1284,
+    "parachainId": "",
+    "chainName": "Moonbeam",
+    "nativeAsset": {
+      "name": "GLMR",
+      "address": "0x0000000000000000000000000000000000000000",
+      "decimals": 18
+    },
+    "contracts": {
+      "SLPX": {
+        "address": ""
+      },
+      "ProjectPoolFactory": {
+        "address": ""
+      }
+    },
+    "vAssets": [],
+    "rpcNodes": [
+      {
+        "provider": "Moonbeam",
+        "url": "wss://moonbeam.drpc.org"
+      }
+    ]
+  },
+  "31337": {
+    "chainId": 31337,
+    "parachainId": null,
+    "chainName": "local",
+    "testnet": true,
+    "contracts": {
+      "MockProjectToken": {
+        "address": "0x712516e61C8B383dF4A63CFe83d7701Bce54B03e",
+        "decimals": "18"
+      },
+      "MockVToken": {
+        "address": "0x71C95911E9a5D330f4D621842EC243EE1343292e",
+        "decimals": "18"
+      },
+      "SLPX": {
+        "address": ""
+      },
+      "ProjectPoolFactory": {
+        "address": "0x8464135c8F25Da09e49BC8782676a84730C318bC"
+      }
+    },
+    "nativeAsset": {
+      "name": "Astar",
+      "symbol": "ASTR",
+      "address": "0x0000000000000000000000000000000000000000",
+      "decimals": "18",
+      "icon": "https://s2.coinmarketcap.com/static/img/coins/200x200/12885.png"
+    },
+    "vAssets": [
+      {
+        "name": "voucher Astar",
+        "symbol": "vASTR",
+        "address": "0x71C95911E9a5D330f4D621842EC243EE1343292e",
+        "icon": "https://www.stakingrewards.com/_next/image?url=https%3A%2F%2Fstorage.googleapis.com%2Fstakingrewards-static%2Fimages%2Fassets%2Fproduction%2Fbifrost-voucher-astr_logo.png%3Fv%3D1717150606436&w=3840&q=75",
+        "decimals": 18
+      },
+      {
+        "name": "voucher Dot",
+        "symbol": "vDOT",
+        "address": "0x0000",
+        "icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvWgkOiR1hhHPj-S4ECiQOSEVwsPVFYBcWEOBYslnHs9DWI3Ne2y_zh7NnD9HVn49zn60&usqp=CAU",
+        "decimals": 10
+      },
+      {
+        "name": "voucher Manta",
+        "symbol": "vMANTA",
+        "address": "0x0000",
+        "icon": "",
+        "decimals": "18"
+      }
+    ],
+    "rpcNodes": [
+      {
+        "provider": "Foundry",
+        "url": "http://127.0.0.1:8545"
+      },
+      {
+        "provider": "Hardhat",
+        "url": "http://127.0.0.1:8545"
+      }
+    ]
+  }
+}

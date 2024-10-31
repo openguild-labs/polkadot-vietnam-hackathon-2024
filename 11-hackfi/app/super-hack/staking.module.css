@@ -1,0 +1,21 @@
+@keyframes pulsate {
+  0%, 100% {
+    width: 200px; /* Initial and final width */
+    height: 200px; /* Initial and final height */
+  }
+  50% {
+    width: 500px; /* Maximum width during animation */
+    height: 500px; /* Maximum height during animation */
+  }
+}
+
+.pulsatingImage {
+  animation: pulsate 4s ease-in-out infinite; /* Animation applied to the image */
+}
+
+.topOwnersContainer {
+  display: flex; /* Example: using flexbox to align child elements */
+  flex-direction: column; /* Arrange items vertically */
+  align-items: center; /* Center child elements */
+  padding: 20px; /* Add internal spacing */
+}

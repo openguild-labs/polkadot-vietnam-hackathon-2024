@@ -1,0 +1,14 @@
+@keyframes color-change {
+    0% { color: red; }
+    14.28% { color: yellow; }
+    28.57% { color: blue; }
+    42.86% { color: green; }
+    57.14% { color: blue; }
+    71.43% { color: purple; }
+    85.71% { color: pink; }
+    100% { color: red; }
+  }
+  
+  .animate-color-change {
+    animation: color-change 1s linear infinite;
+  }

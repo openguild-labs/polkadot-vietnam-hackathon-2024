@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("MVP_DB_URL")
+}
+
+model User {
+  id            String  @id @default(uuid())
+  address       String  @unique
+  name          String
+  email         String
+  emailVerified Boolean @default(false)
+}
+
+model SocialTask {
+  id              String   @id @default(uuid())
+  taskID          String   @unique
+  socialPlatform  String
+  taskDescription String
+  taskType        TaskType
+  postUrl         String
+}
+
+model TaskDone {
+  id      String   @id @default(uuid())
+  address String
+  taskID  String
+  doneAt  DateTime @default(now())
+}
+
+model Launchpad {
+  id                  String @id @default(uuid())
+  totalUniqueUsers    Int
+  totalRaisedAmount   String
+  totalFundedProjects Int
+}
+
+model Project {
+  id                  String        @id @default(uuid())
+  projectID           Int?          @unique
+  projectOwnerAddress String?
+  description         String
+  shortDescription    String
+  projectImageUrls    String[]
+  txnHashCreated      String?       @unique
+  projectTitle        String
+  projectLogoImageUrl String[]
+  endDate             DateTime      @default(now())
+  startDate           DateTime      @default(now())
+  isWithdrawn         Boolean       @default(false)
+  // status              ProjectStatus @default(pending)
+  investEvents        InvestEvent[]
+}
+
+model OTP {
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+// SMART CONTRACT EVENTS
+model InvestEvent {
+  id          String  @id @default(uuid())
+  userAddress String
+  projectId   Int
+  amount      String // repr. string as bigint
+  project     Project @relation(fields: [projectId], references: [projectID], onDelete: NoAction, onUpdate: NoAction, map: "fk_InvestEvent_projectId")
+
+  @@index([userAddress]) // set index for faster query
+}
+
+enum TaskType {
+  follow
+  like
+  share
+}
+
+// enum ProjectStatus {
+//   pending
+//   ended
+//   upcoming
+// }

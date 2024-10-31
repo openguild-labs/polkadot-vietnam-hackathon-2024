@@ -1,0 +1,163 @@
+// contracts/lib.rs
+#![cfg_attr(not(feature = "std"), no_std)]
+
+use ink_lang as ink;
+
+#[ink::contract]
+mod prediction_market {
+    use ink_storage::{
+        collections::HashMap,
+        traits::{PackedLayout, SpreadLayout},
+    };
+
+    #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode, PackedLayout, SpreadLayout)]
+    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+    pub struct Prediction {
+        creator: AccountId,
+        asset: Vec<u8>,
+        initial_value: Balance,
+        end_time: Timestamp,
+        total_stake: Balance,
+        is_resolved: bool,
+        outcome: bool,
+    }
+
+    #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode, PackedLayout, SpreadLayout)]
+    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+    pub struct Stake {
+        amount: Balance,
+        prediction: bool,
+    }
+
+    #[ink(storage)]
+    pub struct PredictionMarket {
+        predictions: HashMap<Hash, Prediction>,
+        stakes: HashMap<(Hash, AccountId), Stake>,
+        oracle: AccountId,
+        min_stake: Balance,
+    }
+
+    impl PredictionMarket {
+        #[ink(constructor)]
+        pub fn new(oracle: AccountId, min_stake: Balance) -> Self {
+            Self {
+                predictions: HashMap::new(),
+                stakes: HashMap::new(),
+                oracle,
+                min_stake,
+            }
+        }
+
+        #[ink(message)]
+        pub fn create_prediction(
+            &mut self,
+            asset: Vec<u8>,
+            initial_value: Balance,
+            duration: Timestamp,
+        ) -> Result<Hash> {
+            let creator = self.env().caller();
+            let now = self.env().block_timestamp();
+            let end_time = now + duration;
+
+            let prediction = Prediction {
+                creator,
+                asset,
+                initial_value,
+                end_time,
+                total_stake: 0,
+                is_resolved: false,
+                outcome: false,
+            };
+
+            let id = self.generate_id(&prediction);
+            self.predictions.insert(id, prediction);
+
+            Ok(id)
+        }
+
+        #[ink(message, payable)]
+        pub fn place_stake(&mut self, prediction_id: Hash, is_up: bool) -> Result<()> {
+            let caller = self.env().caller();
+            let stake_amount = self.env().transferred_balance();
+            
+            ensure!(stake_amount >= self.min_stake, Error::InsufficientStake);
+            
+            let prediction = self.predictions.get_mut(&prediction_id)
+                .ok_or(Error::PredictionNotFound)?;
+            
+            ensure!(!prediction.is_resolved, Error::PredictionResolved);
+
+            let stake = Stake {
+                amount: stake_amount,
+                prediction: is_up,
+            };
+
+            self.stakes.insert((prediction_id, caller), stake);
+            prediction.total_stake += stake_amount;
+
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn resolve_prediction(
+            &mut self,
+            prediction_id: Hash,
+            final_value: Balance,
+        ) -> Result<()> {
+            let caller = self.env().caller();
+            ensure!(caller == self.oracle, Error::NotOracle);
+
+            let prediction = self.predictions.get_mut(&prediction_id)
+                .ok_or(Error::PredictionNotFound)?;
+            
+            ensure!(!prediction.is_resolved, Error::PredictionResolved);
+            ensure!(
+                self.env().block_timestamp() >= prediction.end_time,
+                Error::PredictionNotEnded
+            );
+
+            prediction.is_resolved = true;
+            prediction.outcome = final_value > prediction.initial_value;
+
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn claim_rewards(&mut self, prediction_id: Hash) -> Result<()> {
+            let caller = self.env().caller();
+            let prediction = self.predictions.get(&prediction_id)
+                .ok_or(Error::PredictionNotFound)?;
+            
+            ensure!(prediction.is_resolved, Error::PredictionNotResolved);
+
+            let stake = self.stakes.get(&(prediction_id, caller))
+                .ok_or(Error::NoStake)?;
+
+            if stake.prediction == prediction.outcome {
+                let reward = self.calculate_reward(prediction, stake);
+                self.env().transfer(caller, reward)?;
+            }
+
+            self.stakes.remove(&(prediction_id, caller));
+
+            Ok(())
+        }
+
+        // Helper functions
+        fn generate_id(&self, prediction: &Prediction) -> Hash {
+            let mut encodable = (
+                prediction.creator,
+                prediction.asset.clone(),
+                prediction.initial_value,
+                prediction.end_time,
+            );
+            ink_env::hash_encoded::<ink_env::hash::Blake2x256, _>(&encodable)
+        }
+
+        fn calculate_reward(&self, prediction: &Prediction, stake: &Stake) -> Balance {
+            // Simple reward calculation - can be made more sophisticated
+            stake.amount.saturating_mul(2)
+        }
+    }
+
+    // Events

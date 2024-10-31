@@ -1,0 +1,28 @@
+[submodule "bookadot-indexer"]
+	path = bookadot-indexer
+	url = https://github.com/thecosmicblocks/bookadot-indexer
+	branch = evm
+[submodule "bookadot-cinema-app"]
+	path = bookadot-cinema-app
+	url = https://github.com/thecosmicblocks/bookadot-cinema-app
+	branch = main
+[submodule "bookadot-landing-page"]
+	path = bookadot-landing-page
+	url = https://github.com/thecosmicblocks/bookadot-landing-page
+	branch = main
+[submodule "bookadot-smart-contract"]
+	path = bookadot-smart-contract
+	url = https://github.com/thecosmicblocks/bookadot-smart-contract
+	branch = evm
+[submodule "bookadot-backend"]
+	path = bookadot-backend
+	url = https://github.com/thecosmicblocks/bookadot-backend
+	branch = main
+[submodule "bookadot-iac"]
+	path = bookadot-iac
+	url = https://github.com/thecosmicblocks/bookadot-iac
+	branch = master
+[submodule "bookadot-sdk"]
+	path = bookadot-sdk
+	url = https://github.com/thecosmicblocks/bookadot-sdk
+	branch = evm

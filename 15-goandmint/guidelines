@@ -1,0 +1,12 @@
+Hướng dẫn triển khai dự án:
+
+Cài đặt các dependencies:
+bashCopynpm install @polkadot/api @polkadot/extension-dapp @unique-nft/sdk
+
+Cấu hình kết nối với Unique Network:
+- Thay đổi URL WSS provider
+- Cấu hình các tham số mạng
+
+Triển khai smart contract:
+- Deploy contract lên mạng Unique
+- Cập nhật các địa chỉ contract trong frontend

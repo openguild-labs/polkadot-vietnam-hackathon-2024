@@ -1,0 +1,183 @@
+// contracts/EventRegistry.ts
+import { ApiPromise } from '@polkadot/api';
+import { KeyringPair } from '@polkadot/keyring/types';
+
+interface Event {
+  id: string;
+  name: string;
+  description: string;
+  date: Date;
+  maxParticipants: number;
+  currentParticipants: number;
+  price: number;
+  organizer: string;
+}
+
+interface NFTTicket {
+  tokenId: string;
+  eventId: string;
+  owner: string;
+  metadata: {
+    name: string;
+    description: string;
+    image: string;
+  }
+}
+
+export class EventRegistry {
+  private api: ApiPromise;
+  private adminAccount: KeyringPair;
+  
+  constructor(api: ApiPromise, adminAccount: KeyringPair) {
+    this.api = api;
+    this.adminAccount = adminAccount;
+  }
+
+  // Tạo sự kiện mới
+  async createEvent(event: Event): Promise<string> {
+    try {
+      // Kết nối với Unique Network
+      const createEventTx = this.api.tx.events.createEvent({
+        name: event.name,
+        description: event.description,
+        date: event.date.getTime(),
+        maxParticipants: event.maxParticipants,
+        price: event.price,
+        organizer: event.organizer
+      });
+
+      await createEventTx.signAndSend(this.adminAccount);
+      return event.id;
+    } catch (error) {
+      console.error('Error creating event:', error);
+      throw error;
+    }
+  }
+
+  // Đăng ký tham gia sự kiện
+  async registerForEvent(eventId: string, participantAddress: string): Promise<NFTTicket> {
+    try {
+      // Kiểm tra số lượng người tham gia
+      const event = await this.getEvent(eventId);
+      if (event.currentParticipants >= event.maxParticipants) {
+        throw new Error('Event is full');
+      }
+
+      // Tạo NFT ticket
+      const nftMetadata = {
+        name: `Ticket for ${event.name}`,
+        description: `Access ticket for ${event.name} on ${event.date}`,
+        image: `ipfs://ticket-image-${eventId}` // Thay bằng IPFS hash thực tế
+      };
+
+      // Mint NFT trên Unique Network
+      const mintTicketTx = this.api.tx.nft.mint({
+        owner: participantAddress,
+        metadata: nftMetadata,
+        properties: {
+          eventId,
+          timestamp: new Date().getTime()
+        }
+      });
+
+      const result = await mintTicketTx.signAndSend(this.adminAccount);
+      
+      return {
+        tokenId: result.tokenId,
+        eventId,
+        owner: participantAddress,
+        metadata: nftMetadata
+      };
+    } catch (error) {
+      console.error('Error registering for event:', error);
+      throw error;
+    }
+  }
+
+  // Lấy thông tin sự kiện
+  async getEvent(eventId: string): Promise<Event> {
+    try {
+      const eventData = await this.api.query.events.events(eventId);
+      return eventData.unwrap();
+    } catch (error) {
+      console.error('Error getting event:', error);
+      throw error;
+    }
+  }
+
+  // Kiểm tra ticket hợp lệ
+  async verifyTicket(tokenId: string, eventId: string): Promise<boolean> {
+    try {
+      const ticketData = await this.api.query.nft.tokens(tokenId);
+      const ticket = ticketData.unwrap();
+      return ticket.properties.eventId === eventId;
+    } catch (error) {
+      console.error('Error verifying ticket:', error);
+      throw error;
+    }
+  }
+}
+
+// Frontend component
+import React, { useState, useEffect } from 'react';
+import { web3Enable, web3Accounts } from '@polkadot/extension-dapp';
+import { ApiPromise, WsProvider } from '@polkadot/api';
+
+export const EventRegistration = () => {
+  const [api, setApi] = useState<ApiPromise | null>(null);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [userAddress, setUserAddress] = useState<string>('');
+
+  useEffect(() => {
+    const initPolkadot = async () => {
+      // Kết nối với node Unique Network
+      const wsProvider = new WsProvider('wss://your-unique-node');
+      const api = await ApiPromise.create({ provider: wsProvider });
+      setApi(api);
+
+      // Kết nối với ví Polkadot
+      await web3Enable('GoandMint');
+      const accounts = await web3Accounts();
+      if (accounts.length > 0) {
+        setUserAddress(accounts[0].address);
+      }
+    };
+
+    initPolkadot();
+  }, []);
+
+  const handleRegister = async (eventId: string) => {
+    if (!api || !userAddress) return;
+
+    try {
+      const eventRegistry = new EventRegistry(api, userAddress);
+      const ticket = await eventRegistry.registerForEvent(eventId, userAddress);
+      console.log('Registration successful, NFT ticket:', ticket);
+    } catch (error) {
+      console.error('Registration failed:', error);
+    }
+  };
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Available Events</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {events.map((event) => (
+          <div key={event.id} className="border p-4 rounded">
+            <h2 className="text-xl font-semibold">{event.name}</h2>
+            <p>{event.description}</p>
+            <p>Date: {new Date(event.date).toLocaleDateString()}</p>
+            <p>Available spots: {event.maxParticipants - event.currentParticipants}</p>
+            <button
+              onClick={() => handleRegister(event.id)}
+              className="bg-blue-500 text-white px-4 py-2 rounded mt-2"
+              disabled={!userAddress}
+            >
+              Register
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};

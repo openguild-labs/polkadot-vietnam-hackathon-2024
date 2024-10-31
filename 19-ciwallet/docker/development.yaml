@@ -1,0 +1,23 @@
+services:
+  server:
+    build:
+      context: ..
+      args:
+        NEXT_PUBLIC_CIFARM_CORE_KEY: "defaultkey"
+        NEXT_PUBLIC_CIFARM_CORE_HOST: "localhost"
+        NEXT_PUBLIC_CIFARM_CORE_PORT: 7350
+        NEXT_PUBLIC_CIFARM_CORE_USE_SSL: false
+        NEXT_PUBLIC_CIFARM_PERIPHERY_API_URL: "https://api.cifarm.starci.net/api/v1"
+        NEXT_PUBLIC_CIFARM_PERIPHERY_GRAPHQL_URL: "https://api.cifarm.starci.net/graphql"
+
+        NEXT_PUBLIC_CIFARM_BASE_URL: "https://api.cifarm.starci.net/api/v1/packages/"
+        NEXT_PUBLIC_CIFARM_LOADER_NAME: "loader"
+        NEXT_PUBLIC_CIFARM_DATA_NAME: "data"
+        NEXT_PUBLIC_CIFARM_FRAMEWORK_NAME: "framework"
+        NEXT_PUBLIC_CIFARM_WASM_NAME: "wasm"
+    env_file:
+      ../.env.docker
+    ports:
+      - 3053:3000
+
+# docker compose -f docker/development.yaml -p ci-wallet up --build -d 

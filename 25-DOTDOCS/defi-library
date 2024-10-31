@@ -1,0 +1,199 @@
+// lib.rs
+#![cfg_attr(not(feature = "std"), no_std)]
+
+use frame_support::{
+    decl_error, decl_event, decl_module, decl_storage,
+    dispatch::{DispatchResult, DispatchError},
+    ensure,
+    traits::{Currency, ExistenceRequirement, Get, ReservableCurrency},
+};
+use frame_system::ensure_signed;
+use sp_runtime::{traits::{AtLeast32BitUnsigned, CheckedAdd, Zero}, RuntimeDebug};
+use codec::{Decode, Encode};
+use sp_std::prelude::*;
+
+#[derive(Encode, Decode, Clone, RuntimeDebug, PartialEq)]
+pub struct Book<AccountId> {
+    owner: AccountId,
+    title: Vec<u8>,
+    content_hash: Vec<u8>,
+    price: u128,
+    is_available: bool,
+    borrower: Option<AccountId>,
+    borrow_end_time: Option<u64>,
+}
+
+#[derive(Encode, Decode, Clone, RuntimeDebug, PartialEq)]
+pub struct NFTMetadata {
+    title: Vec<u8>,
+    author: Vec<u8>,
+    description: Vec<u8>,
+}
+
+decl_storage! {
+    trait Store for Module<T: Config> as DecentralizedLibrary {
+        // Lưu trữ thông tin sách
+        Books get(fn books): map hasher(blake2_128_concat) T::Hash => Option<Book<T::AccountId>>;
+        
+        // Lưu trữ metadata của NFT
+        NFTs get(fn nfts): map hasher(blake2_128_concat) T::Hash => Option<NFTMetadata>;
+        
+        // Theo dõi token reward
+        UserRewards get(fn user_rewards): map hasher(blake2_128_concat) T::AccountId => u128;
+    }
+}
+
+decl_event! {
+    pub enum Event<T> where
+        AccountId = <T as frame_system::Config>::AccountId,
+        Hash = <T as frame_system::Config>::Hash,
+    {
+        BookAdded(AccountId, Hash),
+        BookBorrowed(AccountId, Hash, u64),
+        BookReturned(AccountId, Hash),
+        BookSold(AccountId, AccountId, Hash),
+        RewardClaimed(AccountId, u128),
+    }
+}
+
+decl_error! {
+    pub enum Error for Module<T: Config> {
+        BookNotFound,
+        BookNotAvailable,
+        InsufficientFunds,
+        NotBookOwner,
+        BorrowPeriodNotEnded,
+    }
+}
+
+decl_module! {
+    pub struct Module<T: Config> for enum Call where origin: T::Origin {
+        type Error = Error<T>;
+        fn deposit_event() = default;
+
+        // Thêm sách mới
+        #[weight = 10_000]
+        pub fn add_book(
+            origin,
+            title: Vec<u8>,
+            content_hash: Vec<u8>,
+            price: u128,
+            metadata: NFTMetadata,
+        ) -> DispatchResult {
+            let sender = ensure_signed(origin)?;
+            
+            let book_hash = T::Hashing::hash_of(&(title.clone(), content_hash.clone()));
+            
+            let book = Book {
+                owner: sender.clone(),
+                title,
+                content_hash,
+                price,
+                is_available: true,
+                borrower: None,
+                borrow_end_time: None,
+            };
+
+            <Books<T>>::insert(book_hash, book);
+            <NFTs<T>>::insert(book_hash, metadata);
+
+            Self::deposit_event(RawEvent::BookAdded(sender, book_hash));
+            Ok(())
+        }
+
+        // Mượn sách
+        #[weight = 10_000]
+        pub fn borrow_book(origin, book_hash: T::Hash, duration: u64) -> DispatchResult {
+            let borrower = ensure_signed(origin)?;
+            
+            let mut book = Self::books(book_hash).ok_or(Error::<T>::BookNotFound)?;
+            ensure!(book.is_available, Error::<T>::BookNotAvailable);
+
+            let current_time = <frame_system::Module<T>>::block_number().saturated_into::<u64>();
+            let end_time = current_time.checked_add(duration).ok_or("Overflow")?;
+
+            book.is_available = false;
+            book.borrower = Some(borrower.clone());
+            book.borrow_end_time = Some(end_time);
+
+            <Books<T>>::insert(book_hash, book);
+
+            Self::deposit_event(RawEvent::BookBorrowed(borrower, book_hash, end_time));
+            Ok(())
+        }
+
+        // Trả sách
+        #[weight = 10_000]
+        pub fn return_book(origin, book_hash: T::Hash) -> DispatchResult {
+            let sender = ensure_signed(origin)?;
+            
+            let mut book = Self::books(book_hash).ok_or(Error::<T>::BookNotFound)?;
+            ensure!(book.borrower == Some(sender.clone()), Error::<T>::NotBookOwner);
+            
+            let current_time = <frame_system::Module<T>>::block_number().saturated_into::<u64>();
+            ensure!(
+                book.borrow_end_time.map_or(true, |end_time| current_time >= end_time),
+                Error::<T>::BorrowPeriodNotEnded
+            );
+
+            book.is_available = true;
+            book.borrower = None;
+            book.borrow_end_time = None;
+
+            <Books<T>>::insert(book_hash, book);
+
+            Self::deposit_event(RawEvent::BookReturned(sender, book_hash));
+            Ok(())
+        }
+
+        // Mua sách
+        #[weight = 10_000]
+        pub fn buy_book(origin, book_hash: T::Hash) -> DispatchResult {
+            let buyer = ensure_signed(origin)?;
+            
+            let mut book = Self::books(book_hash).ok_or(Error::<T>::BookNotFound)?;
+            ensure!(book.is_available, Error::<T>::BookNotAvailable);
+
+            let seller = book.owner.clone();
+            
+            // Chuyển token từ người mua sang người bán
+            T::Currency::transfer(
+                &buyer,
+                &seller,
+                book.price.into(),
+                ExistenceRequirement::KeepAlive
+            )?;
+
+            // Cập nhật chủ sở hữu mới
+            book.owner = buyer.clone();
+            <Books<T>>::insert(book_hash, book);
+
+            Self::deposit_event(RawEvent::BookSold(seller, buyer, book_hash));
+            Ok(())
+        }
+
+        // Nhận phần thưởng
+        #[weight = 10_000]
+        pub fn claim_rewards(origin) -> DispatchResult {
+            let claimer = ensure_signed(origin)?;
+            
+            let rewards = Self::user_rewards(&claimer);
+            ensure!(rewards > 0, Error::<T>::InsufficientFunds);
+
+            // Reset rewards về 0
+            <UserRewards<T>>::insert(&claimer, 0);
+            
+            // Chuyển token rewards
+            T::Currency::deposit_creating(&claimer, rewards.into());
+
+            Self::deposit_event(RawEvent::RewardClaimed(claimer, rewards));
+            Ok(())
+        }
+    }
+}
+
+// Config trait
+pub trait Config: frame_system::Config {
+    type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
+    type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+}

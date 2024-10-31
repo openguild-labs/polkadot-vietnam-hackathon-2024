@@ -1,0 +1,21 @@
+[package]
+name = "lp"
+version = "0.0.1"
+
+[addresses]
+bridge = "0xa7bc02e1053455920d4e1fa0ffd7c0ffa2271c1386008712dfff622125b9bb7d"
+
+[dependencies.MoveStdlib]
+git = 'https://github.com/aptos-labs/aptos-core.git'
+rev = 'mainnet'
+subdir = 'aptos-move/framework/move-stdlib'
+
+[dependencies.AptosStdlib]
+git = 'https://github.com/aptos-labs/aptos-core.git'
+rev = 'mainnet'
+subdir = 'aptos-move/framework/aptos-stdlib'
+
+[dependencies.AptosFramework]
+git = 'https://github.com/aptos-labs/aptos-core.git'
+rev = 'mainnet'
+subdir = 'aptos-move/framework/aptos-framework'

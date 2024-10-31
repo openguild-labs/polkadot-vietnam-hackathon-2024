@@ -1,0 +1,19 @@
+
+    {
+        "id": "9876",
+        "owner": "John Doe",
+        "address": "789 Maple Street, Gotham City, USA",
+        "imageUrl": "https://azure-large-lungfish-787.mypinata.cloud/ipfs/QmVtgvYUB1X2qe1bzvYeqx8eLiEuSedav8s4wV9yCwVipq",
+        "price": 1,
+        "size": "15x30",
+        "country": "Canada",
+        "city": "Gotham",
+        "startDate": "2024-03-15",
+        "endDate": "2024-09-14",
+        "ownerWallet": "0x42d0f5B680cdbFeA3Bf0C8EFd55c2dc0AD804Aca",
+        "status": 1,
+        "isMint": false,
+        "tokenId": 2
+    }
+
+

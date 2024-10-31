@@ -1,0 +1,69 @@
+services:  
+  worker:
+    container_name: worker
+    depends_on:
+      db:
+        condition: service_healthy
+    # image: .
+    build:
+      context: worker
+      dockerfile: dockerfile
+    environment:
+      MODE: development
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: uptos
+      PGUSER: service
+      PGPASSWORD: password
+      NETWORK: mainnet
+      MODULE_ADDR: 0x4e5e85fd647c7e19560590831616a3c021080265576af3182535a1d19e8bc2b3
+    # healthcheck:
+    #   interval: 1s
+    #   timeout: 5s
+    #   retries: 20
+
+  db:
+    container_name: db
+    image: postgres:16.4-bookworm
+    environment:
+      POSTGRES_DB: uptos
+      POSTGRES_USER: service
+      POSTGRES_PASSWORD: password
+      PGDATA: /data/postgres
+    healthcheck:
+      test: pg_isready -U service -d uptos
+      interval: 1s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - ./data/db:/data/postgres
+    ports:
+      - 5432:5432
+
+  cache:
+    container_name: cache
+    image: redis:7.4-bookworm
+    command: redis-server --requirepass redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ./data/cache:/data
+    ports:
+      - 6379:6379
+
+  pgadmin:
+    depends_on:
+      db:
+        condition: service_healthy
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin@example.com
+    volumes:
+      - ./data/pgadmin:/var/lib/pgadmin
+    ports:
+      - 5050:80

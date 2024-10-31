@@ -1,0 +1,58 @@
+// // DB schema for production version of the app
+
+// generator client {
+//   provider = "prisma-client-js"
+// }
+
+// // // production db
+// // datasource db {
+// //   provider = "mongodb"
+// //   url      = env("MONGO_PRODUCTION_DB_URL")
+// // }
+
+// model User {
+//   id            String  @id @default(auto()) @map("_id") @db.ObjectId
+//   address       String  @unique
+//   name          String
+//   email         String  @unique
+//   emailVerified Boolean
+// }
+
+// model SocialTask {
+//   id              String   @id @default(auto()) @map("_id") @db.ObjectId
+//   taskID          String   @unique
+//   socialPlatform  String
+//   taskDescription String
+//   taskType        TaskType
+//   postUrl         String
+// }
+
+// model TaskDone {
+//   id      String   @id @default(auto()) @map("_id") @db.ObjectId
+//   address String
+//   taskID  String
+//   doneAt  DateTime @default(now())
+// }
+
+// model Project {
+//   id               String   @id @default(auto()) @map("_id") @db.ObjectId
+//   projectID        String   @unique
+//   description      String
+//   shortDescription String
+//   projectImages    Bytes[]
+// }
+
+// // Enum for task type
+// enum TaskType {
+//   follow
+//   like
+//   share
+// }
+
+// model OTP {
+//   id        String   @id @default(auto()) @map("_id") @db.ObjectId
+//   email     String
+//   OTP       String
+//   createdAt DateTime @default(now())
+//   expiresAt DateTime
+// }

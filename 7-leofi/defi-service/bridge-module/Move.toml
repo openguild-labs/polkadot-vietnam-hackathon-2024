@@ -1,0 +1,29 @@
+[package]
+name = "bridge"
+version = "1.0.0"
+authors = []
+
+[addresses]
+bridge="0xa7bc02e1053455920d4e1fa0ffd7c0ffa2271c1386008712dfff622125b9bb7d"
+lp="0x2b3cd551d22a2b97e44be330e0c916fbbfa761ed5ab19ade126b2000580f9651"
+
+[dev-addresses]
+bridge="0x0"
+
+[dependencies.MoveStdlib]
+git = 'https://github.com/aptos-labs/aptos-core.git'
+rev = 'mainnet'
+subdir = 'aptos-move/framework/move-stdlib'
+
+[dependencies.AptosStdlib]
+git = 'https://github.com/aptos-labs/aptos-core.git'
+rev = 'mainnet'
+subdir = 'aptos-move/framework/aptos-stdlib'
+
+[dependencies.AptosFramework]
+git = 'https://github.com/aptos-labs/aptos-core.git'
+rev = 'mainnet'
+subdir = 'aptos-move/framework/aptos-framework'
+
+[dependencies.lp]
+local = "lp"

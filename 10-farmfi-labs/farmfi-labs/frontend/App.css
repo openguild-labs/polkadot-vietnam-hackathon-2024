@@ -1,0 +1,91 @@
+/* App.css */
+
+/* Global Styles */
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Light Theme */
+.app.light {
+  background-color: #f4f4f4;
+  color: #000;
+}
+
+/* Dark Theme */
+.app.dark {
+  background-color: #121212;
+  color: #fff;
+}
+
+/* Main Content Layout */
+.main-content {
+  display: flex;
+  flex: 1;
+}
+
+/* Sidebar Styles */
+.sidebar {
+  flex: 0 0 250px;
+}
+
+.sidebar.closed {
+  flex: 0 0 0;
+}
+
+/* Content Area */
+.content {
+  flex: 1;
+  padding: 20px;
+  margin-top: 70px; /* Adjust this to match the height of your header */
+  transition: margin-left 0.3s;
+}
+
+/* Footer Styles */
+footer {
+  background-color: #033a1c;
+  color: #fff;
+  text-align: center;
+  padding: 10px;
+  position: relative;
+  bottom: 0;
+  width: 100%;
+}
+
+/* Media Queries for Responsive Design */
+@media (max-width: 768px) {
+  .main-content {
+      flex-direction: column;
+  }
+
+  .sidebar {
+      display: none; /* Hide the sidebar by default on small screens */
+  }
+
+  .sidebar.open {
+      display: block;
+  }
+
+  .content {
+      margin-top: 60px; /* Adjusted margin for smaller header */
+  }
+}
+
+/* Additional Styles for Light/Dark Theme */
+.header, .sidebar, .footer {
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.app.light .header,
+.app.light .sidebar,
+.app.light .footer {
+  background-color: #033a1c; /* Light theme header, sidebar, and footer */
+  color: #fff;
+}
+
+.app.dark .header,
+.app.dark .sidebar,
+.app.dark .footer {
+  background-color: #1c1c1c; /* Dark theme header, sidebar, and footer */
+  color: #fff;
+}
